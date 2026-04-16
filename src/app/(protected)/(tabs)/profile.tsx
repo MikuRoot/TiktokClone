@@ -41,7 +41,7 @@ export default function ProfileScreen() {
 			<Text style={styles.title}>Profile</Text>
 			<View style={styles.userInfo}>
 				<View style={styles.avatarContainer}>
-					<Text style={styles.avatarText}>{user?.email.charAt(0).toUpperCase()}</Text>
+					<Text style={styles.avatarText}>{user?.email?.charAt(0).toUpperCase() ?? "..."}</Text>
 				</View>
 
 				<View>

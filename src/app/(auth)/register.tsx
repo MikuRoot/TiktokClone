@@ -14,7 +14,7 @@ export default function Register() {
 	const register = useAuthStore((state) => state.register)
 
 	const handleRegister = async () => {
-		if (!email || !password) {
+		if (!email || !password || !username) {
 			Alert.alert("Error", "Please fill in all fields")
 			return;
 		}

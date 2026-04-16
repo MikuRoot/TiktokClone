@@ -8,6 +8,7 @@ import {User} from "../types/types";
 type AuthStore = {
 	user: User | null;
 	isAuthenticated: boolean;
+	hydrated: boolean;
 	login: (email: string, password: string) => Promise<void>;
 	register: (email: string, password: string, username: string) => Promise<void>;
 	logout: () => Promise<void>;
@@ -18,6 +19,7 @@ export const useAuthStore = create<AuthStore>()(
 		(set, get) => ({
 			user: null,
 			isAuthenticated: false,
+			hydrated: false,
 			login: async (email: string, password: string) => {
 				try {
 					const { data, error } = await supabase.auth.signInWithPassword({
@@ -29,13 +31,15 @@ export const useAuthStore = create<AuthStore>()(
 						const newUser: User = {
 							id: user.id,
 							email: user.email!,
-							username: user.user_metadata.username
+							username: user.user_metadata?.username ?? ""
 						}
 
 						set({
 							user: newUser,
 							isAuthenticated: true
 						})
+					} else if (error) {
+						console.error(error);
 					}
 				} catch (error) {
 					throw error;
@@ -57,13 +61,15 @@ export const useAuthStore = create<AuthStore>()(
 						const newUser: User = {
 							id: user.id,
 							email: user.email!,
-							username: user.user_metadata.username
+							username: user.user_metadata?.username ?? ""
 						}
 
 						set({
 							user: newUser,
 							isAuthenticated: false
 						})
+					} else if (error) {
+						console.error(error);
 					}
 				} catch (error) {
 					throw error;
@@ -81,7 +87,10 @@ export const useAuthStore = create<AuthStore>()(
 		}),
 		{
 			name: 'auth-storage',
-			storage: createJSONStorage(() => AsyncStorage)
+			storage: createJSONStorage(() => AsyncStorage),
+			onRehydrateStorage: () => (state) => {
+				if (state) state.hydrated = true;
+			}
 		}
 	)
 )

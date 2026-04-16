@@ -26,6 +26,7 @@ export default function NewPostScreen() {
 	const [video, setVideo] = useState<string | undefined>(undefined)
 	const [caption, setCaption] = useState<string>('')
 	const cameraRef = useRef<CameraView>(null)
+	const hasRequestedPermissions = useRef<boolean>(false)
 
 	const [permissions, requestPermissions] = useCameraPermissions()
 	const [microphonePermissions, requestMicrophonePermissions] = useMicrophonePermissions()
@@ -37,6 +38,7 @@ export default function NewPostScreen() {
 	})
 
 	useEffect(() => {
+		if (hasRequestedPermissions.current) return;
 		(async () => {
 			if (permissions && !permissions.granted && permissions.canAskAgain) {
 				await requestPermissions()
@@ -44,6 +46,7 @@ export default function NewPostScreen() {
 			if (microphonePermissions && !microphonePermissions.granted && microphonePermissions.canAskAgain) {
 				await requestMicrophonePermissions()
 			}
+			hasRequestedPermissions.current = true;
 		})();
 	}, [permissions, microphonePermissions]);
 

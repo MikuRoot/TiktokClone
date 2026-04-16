@@ -23,7 +23,7 @@ export default function Login() {
 			await login(email, password);
 		} catch (error) {
 			console.log(error);
-			Alert.alert("Error", "Please fill in all fields")
+			Alert.alert("Error", "An error occurred during sign in")
 		} finally {
 			setLoading(false);
 		}
