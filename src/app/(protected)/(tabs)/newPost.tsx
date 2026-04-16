@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import {
+	Alert,
 	Button,
 	KeyboardAvoidingView,
 	Platform,
@@ -16,26 +17,59 @@ import * as Linking from 'expo-linking';
 import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context";
 import { useVideoPlayer, VideoView } from "expo-video";
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import {useMutation, useQueryClient} from "@tanstack/react-query";
 
 import CommonStyles from "../../../constants/CommonStyles";
 import {LocalColors} from "../../../constants/Colors";
+import {useAuthStore} from "../../../stores/useAuthStore";
+import {createPost, uploadVideoToStorage} from "../../../services/posts";
 
 export default function NewPostScreen() {
 	const [facing, setFacing] = useState<CameraType>('back')
 	const [ isRecording, setIsRecording ] = useState<boolean>(false)
-	const [video, setVideo] = useState<string | undefined>(undefined)
+	const [video, setVideo] = useState<string>()
 	const [caption, setCaption] = useState<string>('')
+	const user = useAuthStore((state) => state.user)
+
 	const cameraRef = useRef<CameraView>(null)
 	const hasRequestedPermissions = useRef<boolean>(false)
+
+	const queryClient = useQueryClient()
 
 	const [permissions, requestPermissions] = useCameraPermissions()
 	const [microphonePermissions, requestMicrophonePermissions] = useMicrophonePermissions()
 
-	const insets = useSafeAreaInsets();
-
 	const videoPlayer = useVideoPlayer(null, player => {
 		player.loop = true;
 	})
+
+	const { mutate: createNewPost, isPending } = useMutation({
+		mutationFn: async ({ video, description }: { video: string, description: string }) => {
+			const fileExtension = video.split('.').pop() || 'mp4';
+			const fileName = `${user?.id}/${Date.now()}.${fileExtension}`;
+
+			const file = new FileSystem.File(video)
+			const fileBuffer = await file.bytes();
+
+			if (user) {
+				const videoUrl = await uploadVideoToStorage({ fileName, fileExtension, fileBuffer })
+				await createPost({ video_url: videoUrl, description, user_id: user?.id })
+			}
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['posts'] });
+			videoPlayer.release()
+			setCaption('')
+			setVideo('')
+			router.replace('/')
+		},
+		onError: (error) => {
+			Alert.alert("Error", "Failed to create post")
+		}
+	})
+
+	const insets = useSafeAreaInsets();
 
 	useEffect(() => {
 		if (hasRequestedPermissions.current) return;
@@ -106,7 +140,12 @@ export default function NewPostScreen() {
 	}
 
 	const postVideo = async () => {
+		if (!video) {
+			Alert.alert("Error", "No video selected")
+			return;
+		}
 
+		createNewPost({ video, description: caption })
 	}
 
 	const renderCamera = () => {
