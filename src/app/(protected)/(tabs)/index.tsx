@@ -1,11 +1,13 @@
-import {useRef, useState} from "react";
-import { StyleSheet, FlatList, View, Dimensions, ViewToken } from "react-native";
+import {useMemo, useRef, useState} from "react";
+import {StyleSheet, FlatList, View, Dimensions, ViewToken, ActivityIndicator, Text} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons} from "@expo/vector-icons";
+import {useInfiniteQuery, useQuery} from "@tanstack/react-query";
 
 import PostListItem from "../../../components/PostListItem";
-import posts from '@assets/data/posts.json'
 import FeedTab from "../../../components/GenericComponents/FeedTab";
+import { fetchPosts } from "../../../services/posts";
+import {LocalColors} from "../../../constants/Colors";
 
 const TABS = {
   EXPLORE: 'Explore',
@@ -19,11 +21,49 @@ export default function Page() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeTab, setActiveTab] = useState(TABS.FOR_YOU);
 
+  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['posts'],
+    queryFn: ({pageParam}) => fetchPosts(pageParam),
+    initialPageParam: { limit: 3, cursor: undefined },
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length === 0) return undefined
+      return {
+        limit: 3,
+        cursor: lastPage[lastPage.length - 1].id
+      }
+    }
+  })
+
+  const posts = useMemo(() => data?.pages.flat() || [], [data])
+
   const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     if (viewableItems.length > 0) {
       setCurrentIndex(viewableItems[0]?.index || 0)
     }
   })
+
+  if (isLoading) {
+    return (
+      <ActivityIndicator size={"large"} color={"white"} style={{ flex: 1, justifyContent: 'center' }}/>
+    )
+  }
+
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center' }}>
+        <Text
+          style={{
+            color: LocalColors.white,
+            fontWeight: 'bold',
+            textAlign: 'center',
+            fontSize: 18
+          }}
+        >
+          Error occured while fetching posts. Please try again later.
+        </Text>
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>
@@ -38,23 +78,26 @@ export default function Page() {
       </View>
 
       <FlatList
-        data={posts}
+        data={posts || []}
         renderItem={({item, index}) => (
           <PostListItem postItem={item} isActive={index === currentIndex}/>
         )}
         keyExtractor={item => item.id}
-        // getItemLayout={(data, index) => ({
-        //   length: height,
-        //   offset: height * index,
-        //   index
-        // })}
-        initialNumToRender={5}
+        getItemLayout={(data, index) => ({
+          length: height - 80,
+          offset: (height - 80) * index,
+          index
+        })}
+        initialNumToRender={3}
         maxToRenderPerBatch={3}
+        windowSize={5}
         showsVerticalScrollIndicator={false}
         snapToInterval={height - insets.bottom}
         decelerationRate="fast"
         disableIntervalMomentum={true}
         onViewableItemsChanged={onViewableItemsChanged.current}
+        onEndReached={() => !isFetchingNextPage && hasNextPage && fetchNextPage()}
+        onEndReachedThreshold={2}
       />
     </View>
   );

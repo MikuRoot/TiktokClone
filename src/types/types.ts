@@ -33,3 +33,14 @@ export type NewCommentInput = {
 	user_id: string
 	comment: string
 }
+
+export type StorageInput = {
+	fileName: string;
+	fileExtension: string;
+	fileBuffer: Uint8Array;
+}
+
+export type PaginationInput = {
+	cursor?: string;
+	limit?: number;
+}
