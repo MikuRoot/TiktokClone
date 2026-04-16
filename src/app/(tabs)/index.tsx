@@ -27,7 +27,7 @@ export default function Page() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.topBar, { top: insets.top + 70 }]}>
+      <View style={[styles.topBar, { top: insets.top + 40 }]}>
         <MaterialIcons name={"live-tv"} size={24} color={"white"}/>
         <View style={styles.navigationBar}>
           <FeedTab title={TABS.EXPLORE} setActive={setActiveTab} activeTab={activeTab} />
