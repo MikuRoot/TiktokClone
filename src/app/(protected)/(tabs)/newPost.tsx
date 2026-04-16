@@ -17,8 +17,8 @@ import { useSafeAreaInsets, SafeAreaView } from "react-native-safe-area-context"
 import { useVideoPlayer, VideoView } from "expo-video";
 import * as ImagePicker from 'expo-image-picker';
 
-import CommonStyles from "../../constants/CommonStyles";
-import {LocalColors} from "../../constants/Colors";
+import CommonStyles from "../../../constants/CommonStyles";
+import {LocalColors} from "../../../constants/Colors";
 
 export default function NewPostScreen() {
 	const [facing, setFacing] = useState<CameraType>('back')

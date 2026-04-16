@@ -3,9 +3,9 @@ import { StyleSheet, FlatList, View, Dimensions, ViewToken } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons} from "@expo/vector-icons";
 
-import PostListItem from "../../components/PostListItem";
+import PostListItem from "../../../components/PostListItem";
 import posts from '@assets/data/posts.json'
-import FeedTab from "../../components/GenericComponents/FeedTab";
+import FeedTab from "../../../components/GenericComponents/FeedTab";
 
 const TABS = {
   EXPLORE: 'Explore',
