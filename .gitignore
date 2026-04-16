@@ -103,3 +103,7 @@ expo-env.d.ts
 
 # data
 /assets/data/*
+
+# local env files
+.env*.local
+.env

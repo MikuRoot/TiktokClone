@@ -207,6 +207,7 @@ const CommonStyles = {
   mrgn_bottom_40: { marginBottom: 40 },
   mrgn_bottom_30: { marginBottom: 30 },
   mrgn_bottom_20: { marginBottom: 20 },
+  mrgn_bottom_15: { marginBottom: 15 },
   mrgn_bottom_10: { marginBottom: 10 },
   mrgn_bottom_5: { marginBottom: 5 },
 
